@@ -1,0 +1,993 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Random Number Generator - Spin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .main-content {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 10px;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 15px;
+        position: relative;
+        padding: 20px 15px;
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid rgba(212, 196, 176, 0.5);
+        border-radius: 12px;
+        background-color: rgba(250, 248, 245, 0.85);
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+    }
+
+    .header h1 {
+        color: #3a3434;
+        margin-bottom: 5px;
+        font-weight: 600;
+        font-size: 1.2em;
+        text-shadow: none;
+    }
+
+    .header p {
+        color: #8B7355;
+        font-size: 0.9em;
+        margin: 0;
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+    }
+
+    .config-section {
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #D4C4B0;
+        border-radius: 8px;
+        background-color: rgba(250, 248, 245, 0.85);
+    }
+
+    .config-section h2 {
+        margin-top: 0;
+        color: #6B4E3D;
+        font-size: 1.2em;
+    }
+
+    .form-group {
+        display: flex;
+        gap: 15px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+
+    .form-field {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .form-field label {
+        display: block;
+        margin-bottom: 5px;
+        color: #6B4E3D;
+        font-weight: 500;
+    }
+
+    .form-field input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #D4C4B0;
+        border-radius: 4px;
+        font-size: 16px;
+        box-sizing: border-box;
+        background-color: transparent;
+        color: #6B4E3D;
+    }
+
+    .form-field input:focus {
+        outline: none;
+        border-color: #8B7355;
+        box-shadow: 0 0 0 3px rgba(139, 115, 85, 0.1);
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+
+    .btn-primary {
+        background-color: #8B7355;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #6B4E3D;
+    }
+
+    .btn-success {
+        background-color: #A0826D;
+        color: white;
+        padding: 15px 40px;
+        font-size: 18px;
+    }
+
+    .btn-success:hover {
+        background-color: #8B7355;
+    }
+
+    .btn-success:disabled {
+        background-color: #B8A89A;
+        cursor: not-allowed;
+    }
+
+    .result-section {
+        text-align: center;
+        margin: 15px 0;
+        padding: 20px;
+        color: #6B4E3D;
+        border: 1px solid #8B7355;
+        border-radius: 12px;
+        background-color: rgba(250, 248, 245, 0.85);
+    }
+
+    .result-label {
+        font-size: 1em;
+        margin-bottom: 10px;
+        opacity: 0.9;
+    }
+
+    .result-number {
+        font-size: 48px;
+        font-weight: bold;
+        margin: 10px 0;
+        color: #000000;
+    }
+
+    .info-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin: 15px 0;
+    }
+
+    .info-card {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #E8DFD5;
+        border-radius: 8px;
+        background-color: rgba(250, 248, 245, 0.85);
+    }
+
+    .info-card .label {
+        color: #8B7355;
+        font-size: 0.8em;
+        margin-bottom: 5px;
+    }
+
+    .info-card .value {
+        color: #000000;
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+
+    .used-numbers {
+        margin-top: 15px;
+        padding: 15px;
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid #D4C4B0;
+        border-radius: 8px;
+        background-color: rgba(250, 248, 245, 0.85);
+    }
+
+    .used-numbers h3 {
+        margin-top: 0;
+        color: #6B4E3D;
+    }
+
+    .numbers-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .number-badge {
+        background: #8B7355;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.9em;
+    }
+
+    .spin-button-container {
+        text-align: center;
+        margin: 15px 0;
+    }
+
+    .alert {
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .alert-warning {
+        background-color: #F5E6D3;
+        color: #8B5A3C;
+        border: 1px solid #D4C4B0;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg) scale(1);
+        }
+        50% {
+            transform: rotate(180deg) scale(1.2);
+        }
+        100% {
+            transform: rotate(360deg) scale(1);
+        }
+    }
+
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+
+    @keyframes numberPop {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.3);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .result-section {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .header {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .config-section {
+        animation: slideIn 0.5s ease-out 0.1s both;
+    }
+
+    .info-section {
+        animation: fadeIn 0.5s ease-out 0.2s both;
+    }
+
+    .used-numbers {
+        animation: fadeIn 0.5s ease-out 0.3s both;
+    }
+
+    .result-number {
+        animation: numberPop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .slot-machine {
+        width: 600px;
+        height: 150px;
+        margin: 20px auto;
+        position: relative;
+        overflow: hidden;
+        border: 3px solid #8B7355;
+        border-radius: 12px;
+        background: rgba(250, 248, 245, 0.95);
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+
+    .slot-window {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .slot-window::before,
+    .slot-window::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, transparent, #8B7355, transparent);
+        z-index: 3;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .slot-machine.spinning .slot-window::before,
+    .slot-machine.spinning .slot-window::after,
+    .slot-machine.slowing .slot-window::before,
+    .slot-machine.slowing .slot-window::after {
+        opacity: 1;
+    }
+
+    .slot-window::before {
+        left: 30%;
+    }
+
+    .slot-window::after {
+        right: 30%;
+    }
+
+    .slot-numbers {
+        display: flex;
+        flex-direction: row;
+        will-change: transform;
+        height: 100%;
+        transform: translateX(150px) translateZ(0);
+        -webkit-transform: translateX(150px) translateZ(0);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        perspective: 1000px;
+        -webkit-perspective: 1000px;
+    }
+
+    .slot-number {
+        width: 300px;
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 72px;
+        font-weight: bold;
+        color: #000000;
+        flex-shrink: 0;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        will-change: transform;
+    }
+
+    .slot-machine.spinning .slot-numbers {
+        transition-timing-function: cubic-bezier(0.1, 0, 0.1, 1);
+    }
+
+    .slot-machine.slowing .slot-numbers {
+        transition-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
+    }
+
+    .number-badge {
+        transition: all 0.3s ease;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .number-badge:hover {
+        transform: scale(1.15) translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .info-card {
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(107, 78, 61, 0.2);
+    }
+
+    .btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    .spin-button-container {
+        animation: bounce 2s infinite;
+    }
+
+    .form-field input {
+        transition: all 0.3s ease;
+    }
+
+    .form-field input:focus {
+        transform: scale(1.02);
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            padding: 15px;
+        }
+
+        .result-number {
+            font-size: 48px;
+        }
+
+        .form-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .form-field {
+            min-width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="header" id="header-bg">
+        <div class="header-content">
+            <h1>THÁNH LỄ MỪNG KÍNH THÁNH QUAN THẦY VÀ  </h1>
+            <h1>KỈ NIỆM 17 NĂM THÀNH LẬP CỘNG ĐOÀN GIOAN TÔNG ĐỒ </h1>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <form method="POST" action="{% url 'generator:setvalues' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <div class="form-field">
+                    <label for="min">Số nhỏ nhất:</label>
+                    <input type="number" id="min" name="min" value="{{ min }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="max">Số lớn nhất:</label>
+                    <input type="number" id="max" name="max" value="{{ max }}" required>
+                </div>
+                <div class="form-field">
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="result-section">
+        <!-- <div class="result-label">{% if result %}Số đã quay:{% else %}Chưa quay số{% endif %}</div> --> 
+        <div class="slot-machine" id="slotMachine">
+            <div class="slot-window"></div>
+            <div class="slot-numbers" id="slotNumbers">
+                {% if result %}
+                <div class="slot-number">{{ result }}</div>
+                {% else %}
+                <div class="slot-number" style="opacity: 0.7;">?</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="spin-button-container">
+        <form method="POST" action="{% url 'generator:spin' %}" id="spinForm">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success" {% if remain == 0 %}disabled{% endif %} id="spinBtn">
+                🎯 Quay số
+            </button>
+        </form>
+    </div>
+
+    {% if remain == 0 %}
+    <div class="alert alert-warning">
+        ⚠️ Đã quay hết số! Vui lòng cập nhật lại khoảng số để tiếp tục.
+    </div>
+    {% endif %}
+
+    <div class="info-section">
+        <div class="info-card">
+            <div class="label">Số còn lại</div>
+            <div class="value">{{ remain }}</div>
+        </div>
+        <div class="info-card">
+            <div class="label">Tổng số ban đầu</div>
+            <div class="value">{{ total }}</div>
+        </div>
+        <div class="info-card">
+            <div class="label">Đã quay</div>
+            <div class="value">{{ used|length }}</div>
+        </div>
+    </div>
+
+    {% if used %}
+    <div class="used-numbers">
+        <h3>📋 Danh sách số đã quay ({{ used|length }} số):</h3>
+        <div class="numbers-list">
+            {% for num in used %}
+            <span class="number-badge">{{ num }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pageBackground = document.getElementById('page-background');
+        const header = document.getElementById('header-bg');
+        const bannerJpg = '{% static "images/banner.jpg" %}';
+        const bannerPng = '{% static "images/banner.png" %}';
+        
+        function setPageBackground(url) {
+            if (pageBackground) {
+                pageBackground.style.backgroundImage = `url("${url}")`;
+                pageBackground.style.backgroundSize = 'cover';
+                pageBackground.style.backgroundPosition = 'center center';
+                pageBackground.style.backgroundRepeat = 'no-repeat';
+                pageBackground.classList.add('has-image');
+                pageBackground.offsetHeight;
+            }
+        }
+        
+        if (pageBackground) {
+            const img = new Image();
+            img.onload = function() {
+                setPageBackground(bannerJpg);
+                if (header) header.classList.add('has-banner-jpg');
+            };
+            img.onerror = function() {
+                const imgPng = new Image();
+                imgPng.onload = function() {
+                    setPageBackground(bannerPng);
+                    if (header) header.classList.add('has-banner-png');
+                };
+                imgPng.onerror = function() {
+                };
+                imgPng.src = bannerPng;
+            };
+            img.src = bannerJpg;
+        }
+
+        const slotMachine = document.getElementById('slotMachine');
+        const slotNumbers = document.getElementById('slotNumbers');
+        const resultLabel = document.querySelector('.result-label');
+        
+        let spinTimeout = null;
+        let isSpinning = false;
+        let currentTargetNumber = null;
+        
+        function createSlotNumbers(min, max, targetNumber) {
+            const numbers = [];
+            const range = max - min + 1;
+            let repeatCount;
+            
+            if (range <= 5) {
+                repeatCount = 6;
+            } else if (range <= 20) {
+                repeatCount = 4;
+            } else if (range <= 50) {
+                repeatCount = 3;
+            } else {
+                repeatCount = 2;
+            }
+            
+            for (let i = 0; i < repeatCount; i++) {
+                for (let num = min; num <= max; num++) {
+                    numbers.push(num);
+                }
+            }
+            
+            for (let i = numbers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+            }
+            
+            const targetIndex = numbers.findIndex(n => n === targetNumber);
+            const finalIndex = targetIndex !== -1 ? targetIndex : numbers.length - 1;
+            
+            return { numbers, targetIndex: finalIndex };
+        }
+        
+        let spinCompleteCallback = null;
+        
+        function stopSpin() {
+            if (!slotMachine || !slotNumbers) return;
+            
+            const wasSpinning = isSpinning;
+            isSpinning = false;
+            if (spinTimeout) {
+                clearTimeout(spinTimeout);
+                spinTimeout = null;
+            }
+            
+            slotMachine.classList.remove('spinning', 'slowing');
+            slotNumbers.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            slotNumbers.style.webkitTransition = '-webkit-transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            
+            if (currentTargetNumber !== null) {
+                const slotMachineWidth = 600;
+                const itemWidth = 300;
+                const centerOffset = (slotMachineWidth / 2) - (itemWidth / 2);
+                
+                slotNumbers.innerHTML = `<div class="slot-number">${currentTargetNumber}</div>`;
+                slotNumbers.style.transform = `translateX(${centerOffset}px) translateZ(0)`;
+                slotNumbers.style.webkitTransform = `translateX(${centerOffset}px) translateZ(0)`;
+            }
+            
+            if (wasSpinning && spinCompleteCallback) {
+                const callback = spinCompleteCallback;
+                spinCompleteCallback = null;
+                callback();
+            }
+        }
+        
+        function spinSlotMachine(targetNumber, min, max, onComplete) {
+            if (!slotMachine || !slotNumbers) return;
+            
+            currentTargetNumber = targetNumber;
+            isSpinning = true;
+            
+            const { numbers, targetIndex } = createSlotNumbers(min, max, targetNumber);
+            
+            slotNumbers.innerHTML = '';
+            numbers.forEach(num => {
+                const div = document.createElement('div');
+                div.className = 'slot-number';
+                div.textContent = num;
+                slotNumbers.appendChild(div);
+            });
+            
+            const itemWidth = 300;
+            const slotMachineWidth = 600;
+            const centerOffset = (slotMachineWidth / 2) - (itemWidth / 2);
+            
+            const startPosition = -(numbers.length * itemWidth);
+            const targetPosition = -(targetIndex * itemWidth) + centerOffset;
+            
+            slotMachine.classList.add('spinning');
+            
+            const range = max - min + 1;
+            
+            let totalDuration;
+            if (range <= 5) {
+                totalDuration = 4000;
+            } else if (range <= 20) {
+                totalDuration = 5000;
+            } else if (range <= 50) {
+                totalDuration = 6000;
+            } else {
+                totalDuration = 7000;
+            }
+            
+            const slowDuration = totalDuration;
+            
+            slotNumbers.style.transition = 'none';
+            slotNumbers.style.transform = `translateX(${startPosition}px) translateZ(0)`;
+            slotNumbers.style.webkitTransform = `translateX(${startPosition}px) translateZ(0)`;
+            
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (!isSpinning) return;
+                    
+                    slotMachine.classList.remove('spinning');
+                    slotMachine.classList.add('slowing');
+                    slotNumbers.style.transition = `transform ${slowDuration}ms ease-out`;
+                    slotNumbers.style.webkitTransition = `-webkit-transform ${slowDuration}ms ease-out`;
+                    slotNumbers.style.transform = `translateX(${targetPosition}px) translateZ(0)`;
+                    slotNumbers.style.webkitTransform = `translateX(${targetPosition}px) translateZ(0)`;
+                    
+                    spinTimeout = setTimeout(() => {
+                        if (!isSpinning) return;
+                        stopSpin();
+                        if (onComplete) {
+                            onComplete();
+                        }
+                    }, slowDuration);
+                });
+            });
+        }
+        
+        if (slotMachine) {
+            slotMachine.addEventListener('click', function() {
+                if (isSpinning) {
+                    const spinBtn = document.getElementById('spinBtn');
+                    if (spinBtn && window.lastSpinData) {
+                        const data = window.lastSpinData;
+                        if (data.remain > 0) {
+                            spinBtn.disabled = false;
+                            spinBtn.innerHTML = '🎯 Quay số';
+                            spinBtn.style.opacity = '1';
+                            isSpinningRequest = false;
+                        }
+                    }
+                    
+                    spinCompleteCallback = function() {
+                        const usedValue = document.querySelectorAll('.info-card .value')[2];
+                        if (usedValue && window.lastSpinData) {
+                            usedValue.textContent = window.lastSpinData.used_count;
+                            
+                            const usedNumbersDiv = document.querySelector('.used-numbers');
+                            const data = window.lastSpinData;
+                            
+                            if (data.used && data.used.length > 0) {
+                                if (!usedNumbersDiv) {
+                                    const mainContent = document.querySelector('.main-content');
+                                    const newUsedDiv = document.createElement('div');
+                                    newUsedDiv.className = 'used-numbers';
+                                    newUsedDiv.innerHTML = `
+                                        <h3>📋 Danh sách số đã quay (${data.used.length} số):</h3>
+                                        <div class="numbers-list"></div>
+                                    `;
+                                    mainContent.appendChild(newUsedDiv);
+                                }
+                                
+                                const listContainer = usedNumbersDiv ? usedNumbersDiv.querySelector('.numbers-list') : document.querySelector('.numbers-list');
+                                if (listContainer) {
+                                    listContainer.innerHTML = '';
+                                    data.used.forEach((num, index) => {
+                                        const badge = document.createElement('span');
+                                        badge.className = 'number-badge';
+                                        badge.textContent = num;
+                                        badge.style.animationDelay = `${index * 0.05}s`;
+                                        listContainer.appendChild(badge);
+                                    });
+                                    
+                                    if (usedNumbersDiv) {
+                                        usedNumbersDiv.querySelector('h3').textContent = `📋 Danh sách số đã quay (${data.used.length} số):`;
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    stopSpin();
+                }
+            });
+        }
+        
+        const spinForm = document.getElementById('spinForm');
+        const spinBtn = document.getElementById('spinBtn');
+        const spinContainer = document.querySelector('.spin-button-container');
+        let isSpinningRequest = false;
+        
+        if (spinForm && spinBtn) {
+            spinForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (spinBtn.disabled || isSpinningRequest) return;
+                
+                isSpinningRequest = true;
+                const originalText = spinBtn.innerHTML;
+                spinBtn.disabled = true;
+                spinBtn.innerHTML = '⏳ Đang quay...';
+                spinBtn.style.opacity = '0.7';
+                
+                if (spinContainer) {
+                    spinContainer.style.animation = 'shake 0.5s ease-in-out';
+                }
+                
+                const csrftoken = spinForm.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const formData = new FormData();
+                    formData.append('csrfmiddlewaretoken', csrftoken);
+                    
+                    fetch('{% url "generator:spin" %}', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: formData,
+                        credentials: 'same-origin'
+                    })
+                    .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.lastSpinData = data;
+                        const min = data.min || parseInt(document.getElementById('min').value) || 1;
+                        const max = data.max || parseInt(document.getElementById('max').value) || 100;
+                        
+                        if (resultLabel) {
+                            resultLabel.textContent = 'Số đã quay:';
+                        }
+                        
+                        const remainValue = document.querySelectorAll('.info-card .value')[0];
+                        const totalValue = document.querySelectorAll('.info-card .value')[1];
+                        const usedValue = document.querySelectorAll('.info-card .value')[2];
+                        
+                        if (remainValue) remainValue.textContent = data.remain;
+                        if (totalValue) totalValue.textContent = data.total;
+                        
+                        spinSlotMachine(data.result, min, max, function() {
+                            if (usedValue) usedValue.textContent = data.used_count;
+                            
+                            const usedNumbersDiv = document.querySelector('.used-numbers');
+                            
+                            if (data.used && data.used.length > 0) {
+                                if (!usedNumbersDiv) {
+                                    const mainContent = document.querySelector('.main-content');
+                                    const newUsedDiv = document.createElement('div');
+                                    newUsedDiv.className = 'used-numbers';
+                                    newUsedDiv.innerHTML = `
+                                        <h3>📋 Danh sách số đã quay (${data.used.length} số):</h3>
+                                        <div class="numbers-list"></div>
+                                    `;
+                                    mainContent.appendChild(newUsedDiv);
+                                }
+                                
+                                const listContainer = usedNumbersDiv ? usedNumbersDiv.querySelector('.numbers-list') : document.querySelector('.numbers-list');
+                                if (listContainer) {
+                                    listContainer.innerHTML = '';
+                                    data.used.forEach((num, index) => {
+                                        const badge = document.createElement('span');
+                                        badge.className = 'number-badge';
+                                        badge.textContent = num;
+                                        badge.style.animationDelay = `${index * 0.05}s`;
+                                        listContainer.appendChild(badge);
+                                    });
+                                    
+                                    if (usedNumbersDiv) {
+                                        usedNumbersDiv.querySelector('h3').textContent = `📋 Danh sách số đã quay (${data.used.length} số):`;
+                                    }
+                                }
+                            }
+                        });
+                        
+                        if (data.remain === 0) {
+                            const alertDiv = document.querySelector('.alert-warning');
+                            if (!alertDiv) {
+                                const spinButtonContainer = document.querySelector('.spin-button-container');
+                                const newAlert = document.createElement('div');
+                                newAlert.className = 'alert alert-warning';
+                                newAlert.textContent = '⚠️ Đã quay hết số! Vui lòng cập nhật lại khoảng số để tiếp tục.';
+                                spinButtonContainer.parentNode.insertBefore(newAlert, spinButtonContainer.nextSibling);
+                            }
+                            spinBtn.disabled = true;
+                        } else {
+                            const alertDiv = document.querySelector('.alert-warning');
+                            if (alertDiv) {
+                                alertDiv.remove();
+                            }
+                            spinBtn.disabled = false;
+                        }
+                        
+                        const range = data.max - data.min + 1;
+                        let timeoutDuration;
+                        if (range <= 5) {
+                            timeoutDuration = 4100;
+                        } else if (range <= 20) {
+                            timeoutDuration = 5100;
+                        } else if (range <= 50) {
+                            timeoutDuration = 6100;
+                        } else {
+                            timeoutDuration = 7100;
+                        }
+                        
+                        setTimeout(() => {
+                            if (slotMachine) {
+                                slotMachine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        }, timeoutDuration);
+                        
+                        setTimeout(() => {
+                            spinBtn.innerHTML = originalText;
+                            spinBtn.disabled = data.remain === 0;
+                            spinBtn.style.opacity = '1';
+                            isSpinningRequest = false;
+                        }, timeoutDuration);
+                    }
+                })
+                .catch(error => {
+                    spinBtn.innerHTML = originalText;
+                    spinBtn.disabled = false;
+                    spinBtn.style.opacity = '1';
+                    isSpinningRequest = false;
+                })
+                .finally(() => {
+                    if (spinContainer) {
+                        setTimeout(() => {
+                            spinContainer.style.animation = 'bounce 2s infinite';
+                        }, 500);
+                    }
+                });
+            });
+        }
+
+        const infoCards = document.querySelectorAll('.info-card');
+        infoCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+
+        const numberBadges = document.querySelectorAll('.number-badge');
+        numberBadges.forEach((badge, index) => {
+            badge.style.animationDelay = `${index * 0.05}s`;
+        });
+
+        if (resultNumber && resultNumber.textContent !== '?') {
+            setTimeout(() => {
+                resultNumber.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    });
+</script>
+{% endblock %}
+
